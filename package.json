@@ -1,0 +1,15 @@
+{
+  "name": "mygraphql",
+  "version": "1.0.0",
+  "description": "graphql to implement bff(backend for front)",
+  "main": "index.js",
+  "scripts": {
+    "test": "do_test"
+  },
+  "keywords": [
+    "graphql",
+    "test"
+  ],
+  "author": "mx",
+  "license": "ISC"
+}
