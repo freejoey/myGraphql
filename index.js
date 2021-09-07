@@ -5,37 +5,32 @@ var { buildSchema } = require('graphql');
 var axios = require('axios')
 
 var base_url = axios.create({
-    baseURL:'http://localhost:8081/test'
+    baseURL: 'http://localhost:8081/test'
 });
 
 function callGet() {
-    return new Promise(function(resolve, rejects){
+    return new Promise(function (resolve, rejects) {
         base_url.get('/get')
-        .then(function (response){
-            console.log(response.data);
-            resolve(response.data);
-        })
-        .catch(error => {
-            rejects(error);
-        });
+            .then(function (response) {
+                console.log(response.data);
+                resolve(response.data);
+            })
+            .catch(error => {
+                rejects(error);
+            });
     });
 }
 
 function callUpdate(id, new_id) {
     console.log('do update...%s, %s', id, new_id);
-    return new Promise((resolve, rejects)=>{
-        base_url.get('/update', {params: {'id':id, 'new_id': new_id}})
-        .then(function (response){
-            var data = response.data;
-            if (data && 1==data.changedRows) {
-                resolve(true);
-                return;
-            }
-            resolve(false);
-        })
-        .catch((error)=> {
-            rejects(error);
-        });
+    return new Promise((resolve, rejects) => {
+        base_url.get('/update', { params: { 'id': id, 'new_id': new_id } })
+            .then(function (response) {
+                resolve(response.data);
+            })
+            .catch((error) => {
+                rejects(error);
+            });
     });
 }
 
@@ -54,25 +49,24 @@ var schema = buildSchema(`
         updateTest(id: Int!, new_id: Int!): Update
     }
 `);
- 
-var root = { 
-    updateTest({id, new_id}){
-        var r = callUpdate(id, new_id)
-        .then((data=>data))
-        .catch((error)=>{
-            console.log("error: " + error)
-        });
-        return {'suc': r};
+
+var root = {
+    updateTest({ id, new_id }) {
+        return callUpdate(id, new_id)
+            .then((data => data))
+            .catch((error) => {
+                console.log("error: " + error)
+            });
     },
-    getTest:()=>{
+    getTest: () => {
         return callGet()
-        .then((data=>data))
-        .catch((error)=>{
-            console.log("error: " + error);
-        });
+            .then((data => data))
+            .catch((error) => {
+                console.log("error: " + error);
+            });
     },
 };
- 
+
 var app = express();
 app.use('/graphql', graphqlHTTP({
     schema: schema,
