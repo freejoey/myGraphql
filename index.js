@@ -8,20 +8,27 @@ var base_url = axios.create({
     baseURL:'http://localhost:8081/test'
 });
 
-function callGet(cb) {
-    base_url.get('/get').then(function (response){
-        //response 就是请求url 返回的内容
-        // console.log(response);
-        cb(response.data);
+function callGet() {
+    return new Promise(function(resolve, rejects){
+        base_url.get('/get').then(function (response){
+            console.log(response.data);
+            resolve(response.data);
+        });
     });
 }
 
-function callUpdate(id, new_id, cb) {
-    base_url.get('/update', {params: {'id':id, 'new_id': new_id}})
-    .then(function (response){
-        //response 就是请求url 返回的内容
-        // console.log(response);
-        cb(response.data);
+function callUpdate(id, new_id) {
+    console.log('do update...%s, %s', id, new_id);
+    return new Promise((resolve, rejects)=>{
+        base_url.get('/update', {params: {'id':id, 'new_id': new_id}})
+        .then(function (response){
+            var data = response.data;
+            if (data && 1==data.changedRows) {
+                resolve(true);
+                return;
+            }
+            resolve(false);
+        });
     });
 }
 
@@ -32,31 +39,34 @@ class Test {
     }
 }
 
+class Result {
+    constructor(suc) {
+        this.suc = suc;
+    }
+}
+
 var schema = buildSchema(`
     type Test {
         id: Int
         name: String
     }
+    type Result {
+        suc: Boolean
+    }
 
     type Query {
-        getTest : Test
-        updateTest(id: Int!, new_id: Int!): Boolean
+        getTest : [Test]
+        updateTest(id: Int!, new_id: Int!): Result
     }
 `);
  
 var root = { 
     updateTest({id, new_id}){
-        console.log('do update...%s, %s', id, new_id);
-        callUpdate(id, new_id, function cb(r) {
-            console.log(r);
-        });
-        return true;
+        var r = callUpdate(id, new_id).then((data=>data));
+        return new Result(r);
     },
-    getTest(){
-        callGet(function cb(r) {
-            console.log(r);
-        });
-        return new Test(123, 'mat');
+    getTest:()=>{
+        return callGet().then((data=>data));
     },
 };
  
