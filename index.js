@@ -10,9 +10,13 @@ var base_url = axios.create({
 
 function callGet() {
     return new Promise(function(resolve, rejects){
-        base_url.get('/get').then(function (response){
+        base_url.get('/get')
+        .then(function (response){
             console.log(response.data);
             resolve(response.data);
+        })
+        .catch(error => {
+            rejects(error);
         });
     });
 }
@@ -28,21 +32,11 @@ function callUpdate(id, new_id) {
                 return;
             }
             resolve(false);
+        })
+        .catch((error)=> {
+            rejects(error);
         });
     });
-}
-
-class Test {
-    constructor(id, name) {
-        this.id = id;
-        this.name = name;
-    }
-}
-
-class Result {
-    constructor(suc) {
-        this.suc = suc;
-    }
 }
 
 var schema = buildSchema(`
@@ -50,23 +44,32 @@ var schema = buildSchema(`
         id: Int
         name: String
     }
-    type Result {
+
+    type Update {
         suc: Boolean
     }
 
     type Query {
         getTest : [Test]
-        updateTest(id: Int!, new_id: Int!): Result
+        updateTest(id: Int!, new_id: Int!): Update
     }
 `);
  
 var root = { 
     updateTest({id, new_id}){
-        var r = callUpdate(id, new_id).then((data=>data));
-        return new Result(r);
+        var r = callUpdate(id, new_id)
+        .then((data=>data))
+        .catch((error)=>{
+            console.log("error: " + error)
+        });
+        return {'suc': r};
     },
     getTest:()=>{
-        return callGet().then((data=>data));
+        return callGet()
+        .then((data=>data))
+        .catch((error)=>{
+            console.log("error: " + error);
+        });
     },
 };
  
