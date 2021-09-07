@@ -46,6 +46,8 @@ var schema = buildSchema(`
 
     type Query {
         getTest : [Test]
+    }
+    type Mutation {
         updateTest(id: Int!, new_id: Int!): Update
     }
 `);
